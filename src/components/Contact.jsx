@@ -48,17 +48,6 @@ export default function Contact() {
             <p className="info-val">{item.val}</p>
           </div>
         ))}
-
-        <a
-          href={`https://wa.me/${WHATSAPP_NUMBER}`}
-          target="_blank"
-          rel="noreferrer"
-          className="wa-direct-btn"
-          data-hover
-        >
-          <WhatsAppIcon />
-          Chat on WhatsApp
-        </a>
       </div>
 
       {/* Right — form */}
