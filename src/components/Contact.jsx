@@ -17,10 +17,10 @@ export default function Contact() {
     const service = form.service || 'General inquiry'
     const date = form.date || 'date not specified'
     const msg =
-      `Hi Emmy! 👋 My name is *${form.name}*.\n\n` +
-      `📸 *Service:* ${service}\n` +
-      `📅 *Date:* ${date}\n\n` +
-      `💬 *Message:*\n${form.message}`
+      `Hi Emmy! My name is *${form.name}*.\n\n` +
+      `*Service:* ${service}\n` +
+      `*Date:* ${date}\n\n` +
+      `*Message:*\n${form.message}`
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank')
   }
 
