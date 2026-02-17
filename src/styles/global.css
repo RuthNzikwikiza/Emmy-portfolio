@@ -1,0 +1,70 @@
+/* ── Reset ───────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #0a0a0a;
+  color: #f0ebe0;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+::selection {
+  background: rgba(201, 169, 110, 0.3);
+}
+
+/* ── CSS Variables ───────────────────────────────────── */
+:root {
+  --bg: #0a0a0a;
+  --cream: #f0ebe0;
+  --warm: #c9a96e;
+  --muted: #555;
+  --border: #1e1e1e;
+  --whatsapp: #25D366;
+}
+
+/* ── Animations ──────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.92); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); }
+  50%       { opacity: 1;   transform: scaleY(1.2); }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Utility classes ─────────────────────────────────── */
+.label {
+  font-size: 10px;
+  letter-spacing: 5px;
+  color: var(--warm);
+  font-family: 'DM Sans', sans-serif;
+  text-transform: uppercase;
+}
+
+.section-pad {
+  padding: 120px 48px;
+}
+
+.border-top {
+  border-top: 1px solid var(--border);
+}
