@@ -1,23 +1,19 @@
-import Cursor   from './components/Cursor'
-import Nav      from './components/Nav'
-import Hero     from './components/Hero'
-import WorkGrid from './components/WorkGrid'
-import About    from './components/About'
-import Services from './components/Services'
-import Contact  from './components/Contact'
-import Footer   from './components/Footer'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import Home from './pages/Home'
+import AdminLogin from './pages/AdminLogin'
+import AdminDashboard from './pages/AdminDashboard'
 
 export default function App() {
   return (
-    <>
-      <Cursor />
-      <Nav />
-      <Hero />
-      <WorkGrid />
-      <About />
-      <Services />
-      <Contact />
-      <Footer />
-    </>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }

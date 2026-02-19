@@ -1,16 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
+import { getPhotos } from '../utils/photoStorage'
 import '../styles/components.css'
-
-const PHOTOS = [
-  { id: 1, title: 'Forever Begins',  category: 'Wedding',     year: '2024', img: '/images/forever begins.jpeg',    span: 'tall' },
-  { id: 2, title: 'Just Us Two',     category: 'Pre-Wedding', year: '2024', img: '/images/just us.jpeg',  span: 'wide' },
-  { id: 3, title: 'Golden Vows',     category: 'Anniversary', year: '2023', img: '/images/golden vows.jpeg', span: 'tall' },
-  { id: 4, title: 'The Kiss',        category: 'Wedding',     year: '2024', img: '/images/the kiss.jpeg',     span: 'square' },
-  { id: 5, title: 'Sunrise Promise', category: 'Pre-Wedding', year: '2024', img: '/images/sunrise promise.jpeg', span: 'wide' },
-  { id: 6, title: 'Ten Years Strong',category: 'Anniversary', year: '2023', img: '/images/10years.jpeg',span: 'tall' },
-  { id: 7, title: 'Joyful Moments',  category: 'Events',      year: '2024', img: '/images/joyful moment.jpeg',       span: 'square' },
-  { id: 8, title: 'Family First',    category: 'Events',      year: '2023', img: '/images/family first.jpeg',       span: 'wide' },
-]
 
 const CATEGORIES = ['All', 'Wedding', 'Pre-Wedding', 'Anniversary', 'Events']
 
@@ -18,9 +8,14 @@ export default function WorkGrid() {
   const [filter, setFilter] = useState('All')
   const [lightbox, setLightbox] = useState(null)
   const [visible, setVisible] = useState({})
+  const [photos, setPhotos] = useState([])
   const refs = useRef({})
 
-  const filtered = filter === 'All' ? PHOTOS : PHOTOS.filter((p) => p.category === filter)
+  useEffect(() => {
+    setPhotos(getPhotos())
+  }, [])
+
+  const filtered = filter === 'All' ? photos : photos.filter((p) => p.category === filter)
 
   useEffect(() => {
     const obs = new IntersectionObserver(
