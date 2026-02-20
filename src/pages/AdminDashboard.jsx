@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { getPhotos, addPhoto, deletePhoto, updatePhoto } from '../utils/photoStorage'
-import { uploadToCloudinary } from '../utils/cloudinary'
+import { photosAPI } from '../utils/api'
+import api from '../utils/api'
 import '../styles/admin.css'
 
 export default function AdminDashboard() {
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated, logout, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [photos, setPhotos] = useState([])
   const [uploading, setUploading] = useState(false)
+  const [loadingPhotos, setLoadingPhotos] = useState(true)
   const [editingPhoto, setEditingPhoto] = useState(null)
   const [formData, setFormData] = useState({
     title: '',
@@ -19,13 +20,39 @@ export default function AdminDashboard() {
   })
 
   useEffect(() => {
-    if (!isAuthenticated) navigate('/admin')
-    setPhotos(getPhotos())
-  }, [isAuthenticated, navigate])
+    if (!authLoading && !isAuthenticated) navigate('/admin')
+  }, [isAuthenticated, authLoading, navigate])
+
+  useEffect(() => {
+    loadPhotos()
+  }, [])
+
+  const loadPhotos = async () => {
+    try {
+      const { data } = await photosAPI.list()
+      setPhotos(data)
+    } catch (error) {
+      console.error('Failed to load photos:', error)
+    } finally {
+      setLoadingPhotos(false)
+    }
+  }
 
   const handleLogout = () => {
     logout()
     navigate('/admin')
+  }
+
+  // Upload image to Django backend
+  const uploadImageToDjango = async (file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    const { data } = await api.post('/upload/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    
+    return data.url
   }
 
   const handleFileChange = async (e) => {
@@ -34,12 +61,16 @@ export default function AdminDashboard() {
 
     setUploading(true)
     try {
-      const imageUrl = await uploadToCloudinary(file)
-      const newPhoto = addPhoto({
+      // Upload image to Django (which uploads to Cloudinary)
+      const imageUrl = await uploadImageToDjango(file)
+      
+      // Create photo in database
+      await photosAPI.create({
         ...formData,
         img: imageUrl,
       })
-      setPhotos(getPhotos())
+      
+      await loadPhotos()
       setFormData({
         title: '',
         category: 'Wedding',
@@ -49,16 +80,20 @@ export default function AdminDashboard() {
       e.target.value = ''
       alert('Photo uploaded successfully!')
     } catch (err) {
-      alert('Upload failed: ' + err.message)
+      alert('Upload failed: ' + (err.response?.data?.error || err.message))
     } finally {
       setUploading(false)
     }
   }
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm('Delete this photo?')) {
-      deletePhoto(id)
-      setPhotos(getPhotos())
+      try {
+        await photosAPI.delete(id)
+        await loadPhotos()
+      } catch (error) {
+        alert('Failed to delete photo')
+      }
     }
   }
 
@@ -72,28 +107,43 @@ export default function AdminDashboard() {
 
     setUploading(true)
     try {
-      const imageUrl = await uploadToCloudinary(file)
+      // Upload new image to Django
+      const imageUrl = await uploadImageToDjango(file)
       setEditingPhoto({ ...editingPhoto, img: imageUrl })
       alert('Image uploaded! Click "Save Changes" to confirm.')
     } catch (err) {
-      alert('Upload failed: ' + err.message)
+      alert('Upload failed: ' + (err.response?.data?.error || err.message))
     } finally {
       setUploading(false)
     }
   }
 
-  const handleEditSave = () => {
+  const handleEditSave = async () => {
     if (!editingPhoto) return
-    updatePhoto(editingPhoto.id, {
-      title: editingPhoto.title,
-      category: editingPhoto.category,
-      year: editingPhoto.year,
-      span: editingPhoto.span,
-      img: editingPhoto.img,
-    })
-    setPhotos(getPhotos())
-    setEditingPhoto(null)
-    alert('Photo updated!')
+    try {
+      await photosAPI.update(editingPhoto.id, {
+        title: editingPhoto.title,
+        category: editingPhoto.category,
+        year: editingPhoto.year,
+        span: editingPhoto.span,
+        img: editingPhoto.img,
+      })
+      await loadPhotos()
+      setEditingPhoto(null)
+      alert('Photo updated!')
+    } catch (error) {
+      alert('Failed to update photo')
+    }
+  }
+
+  if (authLoading || loadingPhotos) {
+    return (
+      <div className="admin-dashboard">
+        <p style={{ textAlign: 'center', padding: '40px', color: '#f0ebe0' }}>
+          Loading...
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -163,7 +213,7 @@ export default function AdminDashboard() {
 
           <div className="upload-btn-wrap">
             <label className="upload-btn">
-              {uploading ? 'Uploading...' : 'Choose Image to Upload'}
+              {uploading ? 'Uploading...' : '📤 Choose Image to Upload'}
               <input
                 type="file"
                 accept="image/*"
@@ -177,7 +227,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-     
+      {/* Photo Grid */}
       <div className="admin-photos">
         <h2>All Photos</h2>
         <div className="admin-grid">
@@ -219,7 +269,7 @@ export default function AdminDashboard() {
             <div className="edit-image-section">
               <img src={editingPhoto.img} alt={editingPhoto.title} className="edit-image-preview" />
               <label className="change-image-btn">
-                {uploading ? 'Uploading new image...' : ' Change Image'}
+                {uploading ? 'Uploading new image...' : '📷 Change Image'}
                 <input
                   type="file"
                   accept="image/*"

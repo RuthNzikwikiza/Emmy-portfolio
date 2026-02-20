@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { getPhotos } from '../utils/photoStorage'
+import { photosAPI } from '../utils/api'
 import '../styles/components.css'
 
 const CATEGORIES = ['All', 'Wedding', 'Pre-Wedding', 'Anniversary', 'Events']
@@ -9,11 +9,23 @@ export default function WorkGrid() {
   const [lightbox, setLightbox] = useState(null)
   const [visible, setVisible] = useState({})
   const [photos, setPhotos] = useState([])
+  const [loading, setLoading] = useState(true)
   const refs = useRef({})
 
   useEffect(() => {
-    setPhotos(getPhotos())
+    loadPhotos()
   }, [])
+
+  const loadPhotos = async () => {
+    try {
+      const { data } = await photosAPI.list()
+      setPhotos(data)
+    } catch (error) {
+      console.error('Failed to load photos:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filtered = filter === 'All' ? photos : photos.filter((p) => p.category === filter)
 
@@ -28,9 +40,19 @@ export default function WorkGrid() {
     return () => obs.disconnect()
   }, [filtered])
 
+  if (loading) {
+    return (
+      <section id="work" className="work-section">
+        <p style={{ textAlign: 'center', padding: '40px', color: '#f0ebe0' }}>
+          Loading photos...
+        </p>
+      </section>
+    )
+  }
+
   return (
     <section id="work" className="work-section">
-      {/* Header */}
+     
       <div className="work-header">
         <div>
           <p className="label">SELECTED WORK</p>
@@ -50,7 +72,6 @@ export default function WorkGrid() {
         </div>
       </div>
 
-      {/* Grid */}
       <div className="photo-grid">
         {filtered.map((photo, i) => (
           <div
